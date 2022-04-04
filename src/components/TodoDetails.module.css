@@ -1,0 +1,133 @@
+.todo_item {
+  display: flex;
+  outline: none;
+  /* border-bottom: 1px dotted #666; */
+  height: 60px;
+  overflow: hidden;
+  color: #fff;
+  font-size: 1.125rem;
+  font-weight: 300;
+	animation: todoFadeIn 0.8s ease-in-out 0s 1 normal forwards;
+}
+
+.todo_item:last-child {
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 33.75rem) {
+  .todo_item {
+    font-size: 1.5rem;
+  }
+}
+
+.cell:first-child,
+.cell:last-child {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.cell:first-child {
+  padding-right: 20px;
+}
+
+
+.cell:nth-child(2) {
+  display: flex;
+  flex: 1 1 0%;
+  padding-right: 30px;
+  overflow: hidden;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.name {
+  max-width: 100%;
+  line-height: 60px;
+  overflow: hidden;
+  outline: none;
+  text-overflow: ellipsis;
+  white-space: pre;
+}
+.name::after{
+	content: "\a";
+	white-space: pre;
+}
+.description {
+  max-width: 100%;
+  /* line-height: 40px; */
+  overflow: block;
+  outline: none;
+  text-overflow: ellipsis;
+  white-space: pre;
+	font-size: 0.85rem;
+}
+
+.icon {
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  border: 0;
+  padding: 0;
+  padding: 8px;
+  width: 40px;
+  height: 40px;
+  font-size: 1.35rem;
+  background-color: transparent;
+  color: #555;
+}
+
+.icon:hover {
+  color: #999;
+  cursor: pointer;
+}
+
+@keyframes todoFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.todo-item_completed .name,
+.todo-item_completed .description{
+  color: #666;
+  text-decoration: line-through #85bf6b;
+}
+
+.todo-item_completed .checkIcon {
+  color: #85bf6b;
+}
+
+.hide {
+  display: none !important;
+}
+
+form {
+  width: 100%;
+}
+
+.input:first-child {
+	margin-top: 1rem;
+}
+.input:nth-child(2) {
+	height: 20px;
+	font-size: 0.9rem;
+}
+.input {
+	font-size: 1rem;
+  outline: none;
+  border: none;
+  padding: 0;
+  width: 100%;
+  height: 30px;
+  color: inherit;
+  font: inherit;
+  background-color: #333;
+}
