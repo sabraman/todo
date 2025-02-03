@@ -1,5 +1,6 @@
-import React, { useContext, useState } from "react";
-import TodoModel from "../models/todo";
+import type React from "react";
+import { useContext, useState } from "react";
+import type TodoModel from "../models/todo";
 import { TodoContext } from "../store/store-todo";
 import classes from "./TodoDetails.module.css";
 
@@ -16,17 +17,21 @@ const TodoDetails = ({ todo }: TodoDetailsProps) => {
 	const removeTodo = todoCtx.removeTodo;
 	const checkTodo = todoCtx.checkTodo;
 	const updateTodo = todoCtx.updateTodo;
-
 	const removeTodoHandler = () => {
-		removeTodo(todo.id!);
+		if (todo.id) {
+			removeTodo(todo.id);
+		}
 	};
 
 	const checkTodoHandler = () => {
-		checkTodo(todo.id!)
+		if (todo.id) {
+			checkTodo(todo.id);
+		}
 	}
-
 	const saveEditTodoHandler = () => {
-		updateTodo(todo.id!, todoName,  todoDescription);
+		if (todo.id) {
+			updateTodo(todo.id, todoName, todoDescription);
+		}
 		setEditing(false);
 	};
 
@@ -47,10 +52,11 @@ const TodoDetails = ({ todo }: TodoDetailsProps) => {
 		<div className={`${classes.todo_item} ${todo_completed} ${todo_editing}`}>
 			<div className={classes.cell}>
 				<button
+					type="button"
 					className={`${classes.icon} ${classes.checkIcon} ${hide}`}
-					onClick={checkTodoHandler.bind(null, todo.id)}
+					onClick={checkTodoHandler}
 				>
-					<i className={`fa-solid ${todo_iconCompleted}`}></i>
+					<i className={`fa-solid ${todo_iconCompleted}`} />
 					{/* <i className="far fa-check-circle"></i> */}
 				</button>
 			</div>
@@ -58,44 +64,45 @@ const TodoDetails = ({ todo }: TodoDetailsProps) => {
 				{!editing && <div className={classes.name}>{todoName}</div>}
 				{editing && (
 					<input
-						onKeyPress={onEnterPressHandler}
+						onKeyDown={onEnterPressHandler}
 						className={classes.input}
 						type="text"
 						value={todoName}
 						onChange={(e) => setTodoName(e.target.value)}
-					></input>
+					/>
 				)}
 				{!editing && <div className={`${classes.description} ${hideDescription}`}>{todoDescription}</div>}
 				{editing && (
 					<input
-						onKeyPress={onEnterPressHandler}
+						onKeyDown={onEnterPressHandler}
 						className={classes.input}
 						type="text"
 						value={todoDescription}
 						onChange={(e) => setTodoDescription(e.target.value)}
-					></input>
+					/>
 				)}
 			</div>
 			<div className={classes.cell}>
 				<button
+					type="button"
 					className={`${classes.icon} ${hide}`}
 					onClick={() => setEditing(true)}
 				>
-					<i className="fa-solid fa-square-pen"></i>
-					{/* <i className="fas fa-edit"></i> */}
+					<i className="fa-solid fa-square-pen" />
 				</button>
 				<button
+					type="button"
 					className={`${classes.icon} ${hide}`}
-					onClick={removeTodoHandler.bind(null, todo.id)}
+					onClick={removeTodoHandler}
 				>
-					<i className="fa-solid fa-square-minus"></i>
-					{/* <i className="fas fa-eraser"></i> */}
+					<i className="fa-solid fa-square-minus" />
 				</button>
 				<button
+					type="button"
 					className={`${classes.icon} ${!editing ? classes.hide : ""}`}
 					onClick={saveEditTodoHandler}
 				>
-					<i className="fa-solid fa-xmark"></i>
+					<i className="fa-solid fa-xmark" />
 				</button>
 			</div>
 		</div>

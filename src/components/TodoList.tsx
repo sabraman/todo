@@ -13,7 +13,7 @@ const TodoList = () => {
 
 	useEffect(() => {
 		getTodo();
-	}, []);
+	}, [getTodo]);
 
 	const allTodos =
 		filterOrder === filter.all &&
