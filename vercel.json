@@ -5,32 +5,35 @@
 			"src": "package.json",
 			"use": "@vercel/static-build",
 			"config": {
-				"packageManager": "pnpm"
+				"packageManager": "pnpm",
+				"distDir": "dist"
 			}
 		}
 	],
 	"routes": [
 		{
 			"src": "/todo/assets/(.*)",
-			"dest": "/todo/assets/$1",
-			"headers": {
-				"cache-control": "public, max-age=31536000, immutable"
-			}
+			"dest": "/assets/$1"
 		},
 		{
-			"src": "/todo/(.*)\\.(?:js|jsx|ts|tsx|css|svg)$",
-			"headers": {
-				"content-type": "application/javascript"
-			},
-			"dest": "/todo/$1"
+			"src": "/todo/(.*)\\.(?:js|css|svg)$",
+			"dest": "/$1"
+		},
+		{
+			"src": "/todo/favicon.svg",
+			"dest": "/favicon.svg"
+		},
+		{
+			"src": "/todo",
+			"dest": "/index.html"
 		},
 		{
 			"src": "/todo/(.*)",
-			"dest": "/todo/index.html"
+			"dest": "/index.html"
 		},
 		{
 			"src": "/(.*)",
-			"dest": "/todo/index.html"
+			"dest": "/index.html"
 		}
 	]
 }
