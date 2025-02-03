@@ -1,88 +1,119 @@
-import React, { useState, createContext } from "react";
+import type React from "react";
+import { useState, createContext, useCallback } from "react";
 import TodoList from "../components/TodoList";
 import {
-  getTodosAPI,
-  addTodosAPI,
-  removeTodoAPI,
-  editTodoAPI,
-  checkTodoAPI,
-} from "../api/todoApi";
+  getTodos,
+  addTodo as addTodoToStorage,
+  removeTodo as removeTodoFromStorage,
+  editTodo as editTodoInStorage,
+  checkTodo as checkTodoInStorage,
+} from "../api/todoLocalStorage";
 
-import TodoModel, { filter } from "../models/todo";
+import type TodoModel from "../models/todo";
+import { filter } from "../models/todo";
 
 interface TodoContextInterface {
   todoList: TodoModel[];
   filter: filter;
   changeFilter: (filterOrder: filter) => void;
-  getTodo: () => void;
-  addTodo: (todo: TodoModel) => void;
-  removeTodo: (id: string) => void;
-  checkTodo: (id: string) => void;
-  updateTodo: (id: string, nameInput: string, descriptionInput: string) => void;
+  getTodo: () => Promise<void>;
+  addTodo: (todo: TodoModel) => Promise<void>;
+  removeTodo: (id: string) => Promise<void>;
+  checkTodo: (id: string) => Promise<void>;
+  updateTodo: (id: string, nameInput: string, descriptionInput: string) => Promise<void>;
 }
 
 export const TodoContext = createContext<TodoContextInterface>({
   todoList: [],
   filter: filter.all,
   changeFilter: (filterOrder: filter) => {},
-  getTodo: () => {},
-  addTodo: (todo: TodoModel) => {},
-  removeTodo: (id: string) => {},
-  checkTodo: (id: string) => {},
-  updateTodo: (id: string, nameInput: string, descriptionInput: string) => {},
+  getTodo: async () => {},
+  addTodo: async (todo: TodoModel) => {},
+  removeTodo: async (id: string) => {},
+  checkTodo: async (id: string) => {},
+  updateTodo: async (id: string, nameInput: string, descriptionInput: string) => {},
 });
 
 const TodoContextProvider: React.FC = (props) => {
   const [todos, setTodos] = useState<TodoModel[]>([]);
   const [filterOrder, setFilterOrder] = useState<filter>(filter.all);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const changeFilterHandler = (filterOrder: filter) => {
+  const changeFilterHandler = useCallback((filterOrder: filter) => {
     setFilterOrder(filterOrder);
-  };
+  }, []);
 
-  const getTodoHandler = async () => {
-    const loadedTodos = await getTodosAPI();
-    setTodos(loadedTodos);
-  };
+  const getTodoHandler = useCallback(async () => {
+    try {
+      const loadedTodos = await getTodos();
+      setTodos(loadedTodos);
+    } catch (error) {
+      console.error('Failed to load todos:', error);
+    }
+  }, []);
 
-  const addTodoHandler = async (todo: TodoModel) => {
-    let code;
-    code = await addTodosAPI({ ...todo});
-    const newTodo: TodoModel = {
-      ...todo,
-    };
-    setTodos((prevTodos) => {
-      return prevTodos.concat(newTodo);
-    });
-		getTodoHandler();
-  };
+  const addTodoHandler = useCallback(async (todo: TodoModel) => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      const savedTodo = await addTodoToStorage(todo);
+      setTodos(prevTodos => [...prevTodos, savedTodo]);
+    } catch (error) {
+      console.error('Failed to add todo:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoading]);
 
-  const removeTodoHanlder = async (id: string) => {
-    await removeTodoAPI(id);
-    setTodos((prevTodos) => {
-      return prevTodos.filter((todo) => todo.id !== id);
-    });
-  };
+  const removeTodoHandler = useCallback(async (id: string) => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      await removeTodoFromStorage(id);
+      setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id));
+    } catch (error) {
+      console.error('Failed to remove todo:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoading]);
 
-  const checkTodoHandler = async (id: string) => {
-    const targetTodoIndex = todos.findIndex((todo) => todo.id === id);
-    const targetTodo = todos[targetTodoIndex];
-    const updateTodo = { ...targetTodo, isDone: !targetTodo.isDone };
-    let updateTodos = [...todos];
-    updateTodos[targetTodoIndex] = updateTodo;
-    setTodos(updateTodos);
-    await checkTodoAPI(id, !targetTodo.isDone);
-  };
+  const checkTodoHandler = useCallback(async (id: string) => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      const targetTodo = todos.find(todo => todo.id === id);
+      if (!targetTodo) return;
+      
+      await checkTodoInStorage(id, !targetTodo.isDone);
+      setTodos(prevTodos => 
+        prevTodos.map(todo => 
+          todo.id === id ? { ...todo, isDone: !todo.isDone } : todo
+        )
+      );
+    } catch (error) {
+      console.error('Failed to check todo:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [todos, isLoading]);
 
-  const updatingTodoHandler = async (id: string, nameInput: string, descriptionInput: string) => {
-    const targetTodoIndex = todos.findIndex((todo) => todo.id === id);
-    const targetTodo = todos[targetTodoIndex];
-    const updateTodo: TodoModel = { ...targetTodo, name: nameInput, description: descriptionInput };
-    let updateTodos = [...todos];
-    updateTodos[targetTodoIndex] = updateTodo;
-    setTodos(updateTodos);
-    await editTodoAPI(id, nameInput, descriptionInput);
-  };
+  const updatingTodoHandler = useCallback(async (id: string, nameInput: string, descriptionInput: string) => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      await editTodoInStorage(id, nameInput, descriptionInput);
+      setTodos(prevTodos =>
+        prevTodos.map(todo =>
+          todo.id === id ? { ...todo, name: nameInput, description: descriptionInput } : todo
+        )
+      );
+    } catch (error) {
+      console.error('Failed to update todo:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoading]);
 
   const todoContextValue: TodoContextInterface = {
     todoList: todos,
@@ -90,7 +121,7 @@ const TodoContextProvider: React.FC = (props) => {
     changeFilter: changeFilterHandler,
     getTodo: getTodoHandler,
     addTodo: addTodoHandler,
-    removeTodo: removeTodoHanlder,
+    removeTodo: removeTodoHandler,
     checkTodo: checkTodoHandler,
     updateTodo: updatingTodoHandler,
   };
